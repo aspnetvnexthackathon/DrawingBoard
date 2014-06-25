@@ -1,12 +1,20 @@
-﻿using System.Threading;
-using Microsoft.AspNet.SignalR.Hubs;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNet.SignalR;
 
-namespace Microsoft.AspNet.SignalR.Hosting.AspNet.Samples.Hubs.DrawingPad
+namespace DrawingBoard.Hubs
 {
     public class DrawinghHub : Hub
     {
-        #region Data structures
+        private static Random _random;
 
+        static DrawinghHub()
+        {
+            _random = new Random();
+        }
+
+        #region Data structures
         public class Point
         {
             public double X { get; set; }
@@ -27,14 +35,23 @@ namespace Microsoft.AspNet.SignalR.Hosting.AspNet.Samples.Hubs.DrawingPad
             "red", "green", "blue", "orange", "navy", "silver", "black", "lime"
         };
 
-        public void Join()
+        public async Task<int> CreateGame()
         {
+            int gameId = _random.Next();
             Clients.Caller.color = colors[Interlocked.Increment(ref _id) % colors.Length];
+            await Groups.Add(Context.ConnectionId, gameId.ToString());
+            return gameId;
         }
 
-        public void Draw(Line data)
+        public async Task Join(int gameId)
         {
-            Clients.Others.draw(data);
+            Clients.Caller.color = colors[Interlocked.Increment(ref _id) % colors.Length];
+            await Groups.Add(Context.ConnectionId, gameId.ToString());
+        }
+
+        public void Draw(int gameId, Line data)
+        {
+            Clients.OthersInGroup(gameId.ToString()).draw(data);
         }
     }
 }
