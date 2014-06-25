@@ -29,9 +29,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Hubs\DrawingHub.cs" />
+    <Compile Include="Hubs\GameState.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Hubs\animals.json" />
     <Content Include="index.html" />
     <Content Include="project.json" />
   </ItemGroup>
