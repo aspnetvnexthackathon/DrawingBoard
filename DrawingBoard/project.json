@@ -1,6 +1,9 @@
 ﻿{
     "dependencies": {
-        "Helios" : "0.1-alpha-build-0753"
+        "Helios" : "0.1-alpha-*",
+        "Microsoft.AspNet.Server.WebListener": "0.1-alpha-*",
+        "Microsoft.AspNet.StaticFiles" : "0.1-alpha-*",
+        "Microsoft.AspNet.SignalR.Server": "0.1-alpha-*"
     },
     "configurations" : {
         "net45" : { },
