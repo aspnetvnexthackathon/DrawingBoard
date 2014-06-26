@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace DrawingBoard.Hubs
 {
-    public class DrawinghHub : Hub
+    public class DrawingHub : Hub
     {
         private static readonly Random _random;
 
@@ -20,7 +20,7 @@ namespace DrawingBoard.Hubs
         private static readonly Dictionary<string, string[]> _animalSynonyms;
         private static readonly string[] _animals;
 
-        static DrawinghHub()
+        static DrawingHub()
         {
             _random = new Random();
             _games = new ConcurrentDictionary<string, GameState>();

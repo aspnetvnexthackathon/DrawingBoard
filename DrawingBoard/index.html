@@ -1,11 +1,175 @@
 ﻿<!DOCTYPE html>
-
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <meta charset="utf-8" />
-    <title>DrawingBoard</title>
+    <title>
+        ASP.NET SignalR: Drawing Pad
+    </title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="../../Content/bootstrap.css" rel="stylesheet" />
+    <link href="../../Content/bootstrap-responsive.css" rel="stylesheet" />
+    <link href="../../Content/site.css" rel="stylesheet" />
+    <style>
+        body {
+            padding-top: 80px;
+            padding-bottom: 40px;
+        }
+    </style>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <style type="text/css">
+        #pad {
+            border: 2px solid #808080;
+        }
+    </style>
 </head>
 <body>
-    <h1>DrawingBoard</h1>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+
+                <a class="brand" href="/">ASP.NET SignalR</a>
+                <div class="nav-collapse collapse">
+                </div>
+                <!--/.nav-collapse -->
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <ul class="breadcrumb">
+            <li class="active">Drawing Pad</li>
+        </ul>
+
+        <div class="page-header">
+            <h2>Drawing Pad <small>Real-time canvas</small></h2>
+            <p>An example of a collaborative drawing pad using the HTML5 canvas API.</p>
+        </div>
+
+        <div id="connecting" class="text-info">
+            Please while the connection is established...
+        </div>
+
+
+        <h1 id="objectName"></h1>
+
+        <div id="connected" style="display: none">
+            <canvas width="700" height="400" id="pad">
+                <p class="text-error">Unsupported brower</p>
+            </canvas>
+
+            <form id="send-answer" action="#">
+                <input type="text" id="user-answer" />
+                <input type="submit" id="send" value="Guess!" class="send" />
+            </form>
+
+        </div>
+
+
+
+        <hr />
+
+        <footer>
+            <p>&copy; Microsoft Open Technologies Inc. All rights reserved.</p>
+        </footer>
+
+    </div>
+    <!-- /container -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/Scripts/jquery-1.8.2.js"></script>
+    <script src="/Scripts/bootstrap.js"></script>
+    <script src="/Scripts/signalr.samples.js"></script>
+    <script src="/Scripts/json2.js"></script>
+    <script src="/Scripts/jquery.signalR.js"></script>
+
+    <script src="/Scripts/jcanvas.js"></script>
+    <script src="/signalr/js"></script>
+    <script src="drawingpad.js"></script>
+    <script>
+        $(function () {
+
+            var drawingPad = $.connection.drawingHub;
+            $.connection.hub.logging = true;
+
+            // someone draw something
+            drawingPad.client.draw = function (gameId, value) {
+                $("#pad").drawingpad("line", value);
+            };
+
+            $.connection.hub.start('serverSentEvents', function () {
+
+                if (window.location.hash) {
+
+                    var gameId = window.location.hash.substr(1);
+                    console.log(gameId);
+                    drawingPad.server.join(gameId).done(function () {
+                        $("#connecting").hide();
+                        $("#connected").show();
+
+                        color = drawingPad.state.color;
+
+                        // Listen for drawing
+                        $("#pad").drawingpad({ linecolor: color }).bind('line.drawingpad', function (event, args) {
+                            drawingPad.server.draw(gameId, args);
+                        });
+                    });
+
+                    drawingPad.server.start(gameId).done(function (name) {
+                        $('#objectName').text("Draw a " + name + "!");
+                    });
+
+                    $('#send-answer').hide();
+                }
+
+                else {
+                    $("#connecting").hide();
+                    $("#connected").show();
+
+                    drawingPad.server.createGame().done(function (id) {
+                        var joinUrl = window.location + '#' + id;
+                        $('#objectName').html('Tell a friend to join the game at:<br /><a href="' + joinUrl + '">' + joinUrl + '</a>');
+                        console.log(window.location + "#" + id);
+
+                        $('#send-answer').submit(function () {
+                            var userAnswer = $('#user-answer').val();
+
+                            drawingPad.server.guess(id, userAnswer.toLowerCase()).done(function (result) {
+                                if (result) {
+                                    alert("You guessed it right!!");
+                                }
+                                else {
+                                    alert("You suck!!");
+                                }
+                            });
+
+                            $('#new-message').val('');
+                            $('#new-message').focus();
+
+                            return false;
+                        });
+                    });
+
+
+                    //drawingPad.server.join().done(function () {
+                    //    alert("Joined");
+                    //});
+                }
+            });
+        });
+
+    </script>
+
+
+    <!-- Visual Studio Browser Link -->
+    <script type="application/json" id="__browserLink_initializationData">
+        {"appName":"Chrome","requestId":"d201a1646b8245d4802eafcdf2bd09de"}
+    </script>
+    <script type="text/javascript" src="http://localhost:7664/537a8196db194995ae1db76f5c6547db/browserLink" async="async"></script>
+    <!-- End Browser Link -->
+
 </body>
 </html>
