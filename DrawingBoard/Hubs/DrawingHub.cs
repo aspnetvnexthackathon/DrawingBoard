@@ -64,7 +64,7 @@ namespace DrawingBoard.Hubs
 
             Clients.Caller.color = colors[Interlocked.Increment(ref _id) % colors.Length];
             await Groups.Add(Context.ConnectionId, gameId);
-            await Groups.Add(Context.ConnectionId, "draw-" + gameId);
+            await Groups.Add(Context.ConnectionId, "guess-" + gameId);
             return gameId;
         }
 
@@ -78,7 +78,7 @@ namespace DrawingBoard.Hubs
 
             Clients.Caller.color = colors[Interlocked.Increment(ref _id) % colors.Length];
             await Groups.Add(Context.ConnectionId, gameId);
-            await Groups.Add(Context.ConnectionId, "guess-" + gameId);
+            await Groups.Add(Context.ConnectionId, "draw-" + gameId);
             await Clients.Group("draw-" + gameId).playerJoined(gameId);
         }
 
@@ -97,7 +97,6 @@ namespace DrawingBoard.Hubs
                 throw new InvalidOperationException("A game with the specified id has alread started.");
             }
 
-
             gameTimer = new Timer(_ =>
             {
                 Clients.Group(gameId).gameTimedOut(gameId);
@@ -106,13 +105,17 @@ namespace DrawingBoard.Hubs
 
                 GameState ignore;
                 _games.TryRemove(gameId, out ignore);
-            }, null, 60 * 1000, -1);;
+            }, null, 60 * 1000, -1);
+
+            Clients.Group(gameId).gameStarted(gameId);
 
             return animal;
         }
 
         public bool Guess(string gameId, string animalGuess)
         {
+            Clients.Group("draw-" + gameId).guess(gameId, animalGuess);
+
             GameState game;
             return _games.TryGetValue(gameId, out game) &&
                 (animalGuess == game.Animal || _animalSynonyms[game.Animal].Contains(animalGuess));

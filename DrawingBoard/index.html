@@ -24,6 +24,11 @@
         #pad {
             border: 2px solid #808080;
         }
+
+        li {
+            font-weight: bold;
+            font-size: large;
+        }
     </style>
 </head>
 <body>
@@ -56,6 +61,7 @@
 
 
         <h1 id="objectName"></h1>
+        <h4 id="time"></h4>
 
         <div id="connected" style="display: none">
             <canvas width="700" height="400" id="pad">
@@ -66,7 +72,11 @@
                 <input type="text" id="user-answer" />
                 <input type="submit" id="send" value="Guess!" class="send" />
             </form>
-
+            
+            <div id="guessContainer">
+                <h2>Guesses made so far:</h2>
+                <ol id="guesses"></ol>
+            </div>
         </div>
 
 
@@ -99,6 +109,21 @@
             drawingPad.client.draw = function (gameId, value) {
                 $("#pad").drawingpad("line", value);
             };
+
+            drawingPad.client.guess = function (gameId, guess) {
+                $('#guesses').append('<li>' + guess + '</li>');
+            };
+
+            drawingPad.client.gameStarted = function (gameId, guess) {
+                var timeRemaining = 60;
+                var handle = window.setInterval(function () {
+                    $('#time').text("Time remaining: " + timeRemaining--);
+
+                    if (timeRemaining < 0) {
+                        window.clearInterval(handle);
+                    }
+                }, 1000);
+            }
 
             $.connection.hub.start('serverSentEvents', function () {
 
@@ -153,10 +178,7 @@
                         });
                     });
 
-
-                    //drawingPad.server.join().done(function () {
-                    //    alert("Joined");
-                    //});
+                    $("#guessContainer").hide();
                 }
             });
         });
